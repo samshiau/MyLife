@@ -87,6 +87,7 @@ version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28f32d40287d3f402ae0028a9d54bef51af15c8769492826a69d28f81893151d"
 dependencies = [
+ "actix-macros",
  "futures-core",
  "tokio",
 ]
@@ -451,6 +452,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -712,8 +719,10 @@ dependencies = [
 name = "mylife_backend"
 version = "0.1.0"
 dependencies = [
+ "actix-rt",
  "actix-web",
  "diesel",
+ "dotenv",
 ]
 
 [[package]]

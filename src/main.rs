@@ -1,15 +1,20 @@
 extern crate diesel;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::StatusCode, http::header, middleware};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 use bcrypt::{hash, DEFAULT_COST};  //password hashing library, the cost set a limit for the hashing for performance
 use serde::Deserialize;
 use diesel::RunQueryDsl;
+use actix_cors::Cors;
 use diesel::insert_into;
 mod model; 
 mod schema;
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 use model::NewAccount;
+extern crate dotenv;
+use dotenv::dotenv;
+//use std::env;
+
 
 #[derive(Deserialize)]
 pub struct CreateAccountInfo {
@@ -28,6 +33,8 @@ pub struct LoginInfo {
 
 async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountInfo>) -> impl Responder { // ther reason to pass them is that we need to access the pool and the form data
     //logic for the create account route
+    println!("Testing in create_account route");
+
     use schema::accounts::dsl::*; 
     let new_user = form.into_inner();   //accessing the form data send from client, the data is in the form of CreateAccountInfo struct, automatically converted to json
     let hashed_password = match hash(&new_user.password, DEFAULT_COST) { // hashing the password
@@ -73,12 +80,22 @@ fn create_database_pool() -> DbPool {  // this function setup a db connection po
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-
+    println!("Testing1");
+    dotenv().ok();  // loading the .env file
     let pool = create_database_pool();  // calling the function to create db pool
-
+    println!("Testing2");
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000") // Your frontend's address
+            .allowed_origin("http://192.168.1.147:3000")
+            .allowed_methods(vec!["GET", "POST", "OPTIONS"]) // Allowed HTTP methods
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+            .allowed_header(header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
-            // Add the database pool to the application state
+            .wrap(middleware::Logger::default()) // Log all requests
+            .wrap(cors) // Apply CORS middleware
             .app_data(web::Data::new(pool.clone()))  //doing so making the pool available to all the routes
             .route("/create_account", web::post().to(create_account))   // the post in here means it will only response to post request(post meaning chaing data in the server)
             .route("/login", web::post().to(login))

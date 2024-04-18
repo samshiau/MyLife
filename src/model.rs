@@ -11,7 +11,7 @@ pub struct Account {
 }
 
 #[derive(Insertable)]
-#[table_name="accounts"]
+#[diesel(table_name = accounts)]
 pub struct NewAccount<'a> {
     pub username: &'a str,
     pub password_hash: &'a str,

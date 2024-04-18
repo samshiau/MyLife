@@ -2,16 +2,15 @@
 import React, { useState } from 'react'; // Importing React and the useState hook from the React library
 import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
+import axios from 'axios';
 
 // The App component definition. This is a functional component.
 function App() {
   // useState hook to manage the visibility of the create account form
   const [showCreateAccount, setShowCreateAccount] = useState(false);
-
   // useState hooks for managing the state of login form inputs
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-
   // useState hooks for managing the state of create account form inputs
   const [createUsername, setCreateUsername] = useState('');
   const [createPassword, setCreatePassword] = useState('');
@@ -26,10 +25,52 @@ function App() {
   };
 
   // Event handler function for when the create account form is submitted
-  const handleCreateAccount = (event) => {
+  const handleCreateAccount = async (event) => {
+    console.log('...................................i am in create account!');
     event.preventDefault(); // Prevents the default form submission action
-    // Placeholder for the create account logic
+
+    if (createPassword !== confirmPassword) {
+      alert('Passwords do not match. Please try again.');
+      return;
+    }
+
+    const accountData = {
+      username: createUsername,
+      password: createPassword,
+      account_type: accountType
+    };
+
+    try {
+      // Send the account data to the backend using Axios
+      const response = await axios.post('http://localhost:8080/create_account', accountData);
+  
+      // If the backend responds with a success status
+      if (response.status === 201) {
+        alert('Account created successfully!');
+  
+        // Optional: Reset form fields after successful account creation
+        setCreateUsername('');
+        setCreatePassword('');
+        setConfirmPassword('');
+        setAccountType('regular');
+  
+        // Optional: Redirect to login page or another page
+        // useHistory to navigate: let history = useHistory(); then use history.push('/login');
+      }
+    } catch (error) {
+      // If the backend responds with an error status
+      alert(`Error creating account: ${error.response ? error.response.data.message : error.message}`);
+    }
+
+    
+
   };
+
+ // const handleLogout = (event) => {
+  //  event.preventDefault(); // Prevents the default form submission action
+    // Placeholder for the logout logic
+
+ // };
 
   // JSX for the login form, which is conditionally rendered based on showCreateAccount
   const loginForm = (

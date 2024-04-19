@@ -2,7 +2,7 @@ extern crate diesel;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::StatusCode, http::header, middleware};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
-use bcrypt::{hash, DEFAULT_COST};  //password hashing library, the cost set a limit for the hashing for performance
+use bcrypt::{hash, verify, DEFAULT_COST};  //password hashing library, the cost set a limit for the hashing for performance
 use serde::Deserialize;
 use diesel::RunQueryDsl;
 use actix_cors::Cors;
@@ -10,11 +10,10 @@ use diesel::insert_into;
 mod model; 
 mod schema;
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-use model::NewAccount;
+use model::{NewAccount,Account};
 extern crate dotenv;
 use dotenv::dotenv;
-//use std::env;
-
+//use actix_web::http::StatusCode; // Add import for StatusCode
 
 #[derive(Deserialize)]
 pub struct CreateAccountInfo {
@@ -25,8 +24,8 @@ pub struct CreateAccountInfo {
 
 #[derive(Deserialize)]
 pub struct LoginInfo {
-   // username: String,
-   // password: String,
+   usernamelogin: String,
+   passwordlogin: String,
 }
 
 
@@ -60,8 +59,33 @@ async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountIn
     }
 }
 
-async fn login() -> impl Responder {
-    "Login"
+async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Responder {
+    println!("Testing in login route");
+    use schema::accounts::dsl::*;
+    use diesel::prelude::*;
+
+    let login_info_form = form.into_inner();
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+    println!("connection was ok");
+    let result = accounts.filter(username.eq(&login_info_form.usernamelogin))
+        .first::<Account>(&mut conn);
+    match result {
+        Ok(account) => {
+            // Verify the hashed password
+            if verify(&login_info_form.passwordlogin, &account.password_hash).unwrap_or(false) {
+                HttpResponse::Ok().status(StatusCode::OK).body("Login successful") // Convert integer status code to StatusCode enum variant
+            } else {
+                HttpResponse::Unauthorized().body("Invalid username or password")
+            }
+        },
+        Err(_) => HttpResponse::Unauthorized().body("Invalid username or password"),
+            
+    }
+
+    
 }
 
 async fn logout() -> impl Responder {

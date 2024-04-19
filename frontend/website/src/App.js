@@ -22,11 +22,40 @@ function App() {
   const handleLogin = (event) => {
     event.preventDefault(); // Prevents the default form submission action
     // Placeholder for the login logic
+    console.log('i am in login!');
+    const loginData = {
+      usernamelogin: loginUsername,
+      passwordlogin: loginPassword
+    };
+
+    try
+    {
+      axios.post('http://localhost:8080/login', loginData)
+      .then((response) => {
+        if (response.status === 200)  // needs changes depends on the backend
+        {
+          alert('Login successful!');
+          // Reset form fields after successful login
+          setLoginUsername('');
+          setLoginPassword('');
+          // Redirect to another page
+
+          // useHistory to navigate: let history = useHistory(); then use history.push('/dashboard');
+
+        }
+      });
+    }
+    catch(error)
+    {
+      alert(`Error logging in: ${error.response ? error.response.data.message : error.message}`);
+    }
+    
+    
   };
 
   // Event handler function for when the create account form is submitted
   const handleCreateAccount = async (event) => {
-    console.log('...................................i am in create account!');
+    console.log('i am in create account!');
     event.preventDefault(); // Prevents the default form submission action
 
     if (createPassword !== confirmPassword) {
@@ -40,12 +69,14 @@ function App() {
       account_type: accountType
     };
 
-    try {
+    try 
+    {
       // Send the account data to the backend using Axios
       const response = await axios.post('http://localhost:8080/create_account', accountData);
   
       // If the backend responds with a success status
-      if (response.status === 201) {
+      if (response.status === 201)
+      {
         alert('Account created successfully!');
   
         // Optional: Reset form fields after successful account creation
@@ -57,7 +88,9 @@ function App() {
         // Optional: Redirect to login page or another page
         // useHistory to navigate: let history = useHistory(); then use history.push('/login');
       }
-    } catch (error) {
+    }
+    catch (error) 
+    {
       // If the backend responds with an error status
       alert(`Error creating account: ${error.response ? error.response.data.message : error.message}`);
     }

@@ -69,7 +69,7 @@ async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Resp
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
-    println!("connection was ok");
+    //println!("connection was ok");
     let result = accounts.filter(username.eq(&login_info_form.usernamelogin))
         .first::<Account>(&mut conn);
     match result {

@@ -3,9 +3,11 @@ import React, { useState } from 'react'; // Importing React and the useState hoo
 import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
 import axios from 'axios';
+import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
 function App() {
+  const navigate = useNavigate ();
   // useState hook to manage the visibility of the create account form
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   // useState hooks for managing the state of login form inputs
@@ -18,11 +20,12 @@ function App() {
   const [accountType, setAccountType] = useState('regular');
   const [loginPageOrNot, setLoginPageOrNot]=useState(true);
 
-  // Event handler function for when the login form is submitted
+  // login function
   const handleLogin = (event) => {
     event.preventDefault(); // Prevents the default form submission action
     // Placeholder for the login logic
     console.log('i am in login!');
+    
     const loginData = {
       usernamelogin: loginUsername,
       passwordlogin: loginPassword
@@ -39,7 +42,8 @@ function App() {
           setLoginUsername('');
           setLoginPassword('');
           // Redirect to another page
-
+          
+          navigate('/main');
           // useHistory to navigate: let history = useHistory(); then use history.push('/dashboard');
 
         }
@@ -53,7 +57,7 @@ function App() {
     
   };
 
-  // Event handler function for when the create account form is submitted
+  // create account 
   const handleCreateAccount = async (event) => {
     console.log('i am in create account!');
     event.preventDefault(); // Prevents the default form submission action
@@ -199,8 +203,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <h1>Welcome to MyLife</h1>
-        {showCreateAccount ? createAccountForm : loginForm} 
-        {loginPageOrNot ? createAccountButton : goBacktoLoginButton}
+         {showCreateAccount ? (<>{createAccountForm}{goBacktoLoginButton}</>) : (<>{loginForm}{createAccountButton}</>)}
       </header>
     </div>
   );

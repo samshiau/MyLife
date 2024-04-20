@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import MainPage from './MainPage';
+//import MainPage from './MainPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -12,7 +12,6 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="/main" element={<MainPage />} />
         {/* Add other routes here */}
       </Routes>
     </Router>

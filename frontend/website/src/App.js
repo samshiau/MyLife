@@ -7,7 +7,6 @@ import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
 function App() {
-  const navigate = useNavigate ();
   // useState hook to manage the visibility of the create account form
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   // useState hooks for managing the state of login form inputs
@@ -19,6 +18,7 @@ function App() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [accountType, setAccountType] = useState('regular');
   const [loginPageOrNot, setLoginPageOrNot]=useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // login function
   const handleLogin = (event) => {
@@ -42,8 +42,7 @@ function App() {
           setLoginUsername('');
           setLoginPassword('');
           // Redirect to another page
-          
-          navigate('/main');
+          setIsLoggedIn(true);
           // useHistory to navigate: let history = useHistory(); then use history.push('/dashboard');
 
         }
@@ -111,6 +110,8 @@ function App() {
 
   // JSX for the login form, which is conditionally rendered based on showCreateAccount
   const loginForm = (
+    <>
+    <h1>Welcome to myLife</h1>
     <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
             <label htmlFor="username" className='input-label'>Username:</label>
@@ -137,13 +138,15 @@ function App() {
             <button type="submit" className="login-button">Login</button>
           </div>
         </form>
-
+    </>
   );
   const createAccountButton=(<button className="createANDlogin" onClick={() => {setShowCreateAccount(true); setLoginPageOrNot(false); }}> Create Account</button>);
   const goBacktoLoginButton=(<button className="createANDlogin" onClick={() => {setShowCreateAccount(false); setLoginPageOrNot(true); }}>Back to Login</button>);
 
   // JSX for the create account form, which includes additional fields and a dropdown
   const createAccountForm = (
+    <>
+    <h1>Welcome to myLife</h1>
     <form onSubmit={handleCreateAccount} className="login-form">
     <div className="form-group">
       <label htmlFor="create-username" className='input-label'>Username:</label>
@@ -195,6 +198,15 @@ function App() {
       <button type="submit" className="registerButton">Register</button>
     </div>
   </form>
+    </>
+  );
+
+  const mainContent = (
+    <div>
+      {/* The main content that should be displayed after logging in */}
+      <p>Welcome, {loginUsername}! You are now logged in.</p>
+      {/* ... other components that should be displayed after login */}
+    </div>
   );
 
   // The JSX that is returned from the App component, which determines what is rendered on the screen
@@ -202,9 +214,10 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>Welcome to MyLife</h1>
-         {showCreateAccount ? (<>{createAccountForm}{goBacktoLoginButton}</>) : (<>{loginForm}{createAccountButton}</>)}
-      </header>
+        
+        {isLoggedIn ? mainContent : (showCreateAccount ? createAccountForm : loginForm)}
+        {/* Button to toggle create account form is only shown if not logged in */}
+        {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}      </header>
     </div>
   );
 }

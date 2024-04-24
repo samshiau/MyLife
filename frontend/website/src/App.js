@@ -2,6 +2,7 @@
 import React, { useState } from 'react'; // Importing React and the useState hook from the React library
 import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
+import './maincontent.css';
 import axios from 'axios';
 import { useNavigate  } from 'react-router-dom';
 
@@ -202,22 +203,38 @@ function App() {
   );
 
   const mainContent = (
-    <div>
-      {/* The main content that should be displayed after logging in */}
-      <p>Welcome, {loginUsername}! You are now logged in.</p>
-      {/* ... other components that should be displayed after login */}
+    <div className="container">
+    {/* Left section with import button and conversation list */}
+    <div className="left-section">
+      <button className="import-btn">Import Conversation</button>
+      <div className="conversation-list">
+        <div className="conversation">Conversation 1</div>
+        <div className="conversation">Conversation 2</div>
+        <div className="conversation">Conversation 3</div>
+        {/* Additional conversations can be added here */}
+      </div>
     </div>
+
+    {/* Right section with a box for displaying messages */}
+    <div className="right-section">
+      <div className="message-box">
+        <h3>Messages from Server</h3>
+        <p>This is where messages from other servers are displayed.</p>
+        {/* Add more content as needed */}
+      </div>
+    </div>
+  </div>
   );
 
   // The JSX that is returned from the App component, which determines what is rendered on the screen
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        
+        <img src={logo} className="App-logo" alt="logo" />  
         {isLoggedIn ? mainContent : (showCreateAccount ? createAccountForm : loginForm)}
         {/* Button to toggle create account form is only shown if not logged in */}
-        {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}      </header>
+        {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}    
+      </header>
     </div>
   );
 }

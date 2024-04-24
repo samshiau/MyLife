@@ -57,6 +57,9 @@ async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountIn
         Ok(_) => HttpResponse::new(StatusCode::CREATED),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
+
+
+
 }
 
 async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Responder {
@@ -84,6 +87,7 @@ async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Resp
         Err(_) => HttpResponse::Unauthorized().body("Invalid username or password"),
             
     }
+    
 
     
 }

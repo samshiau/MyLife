@@ -1,0 +1,58 @@
+.container {
+    display: flex;
+    height: 75vh;
+    padding-top: 10px;
+}
+
+.left-section {
+    flex: 1;
+    padding: 20px;
+    background-color: #eaeaea;
+    border-right: 1px solid #ddd;
+}
+
+.right-section {
+    flex: 1;
+    padding: 92px 20px 20px 20px;
+    background-color: #eaeaea;
+}
+
+.import-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.import-btn:hover {
+    background-color: #45a049;
+}
+
+.conversation-list {
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: white;
+}
+
+.conversation {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.conversation:hover {
+    background-color: #f1f1f1;
+}
+
+.message-box {
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: white;
+    height: 60vh;
+    overflow-y: auto;
+}

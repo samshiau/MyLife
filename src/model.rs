@@ -1,7 +1,8 @@
 use diesel::Queryable;
 use diesel::Insertable;
 use crate::schema::accounts;
-
+//use crate::schema::peopleinmylife;
+use crate::schema::userprofiles;
 #[derive(Queryable)]
 pub struct Account {
     pub id: i32, // Assuming the ID is an integer. Adjust the type if necessary.
@@ -19,5 +20,10 @@ pub struct NewAccount<'a> {
 }
 
 
-
+#[derive(Insertable)]
+#[diesel(table_name = userprofiles)]
+pub struct NewProfile<'a>{
+    pub account_id: i32,
+    pub user_name: &'a str,
+}
 

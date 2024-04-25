@@ -10,10 +10,11 @@ use diesel::insert_into;
 mod model; 
 mod schema;
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-use model::{NewAccount,Account};
+use model::{NewAccount,Account,NewProfile};
 extern crate dotenv;
 use dotenv::dotenv;
-//use actix_web::http::StatusCode; // Add import for StatusCode
+use diesel::result::Error;
+
 
 #[derive(Deserialize)]
 pub struct CreateAccountInfo {
@@ -28,13 +29,35 @@ pub struct LoginInfo {
    passwordlogin: String,
 }
 
+fn insert_new_account(conn: &mut PgConnection, new_account: &NewAccount,) -> Result<(i32,String), Error> {
+    use schema::accounts::dsl::*; 
 
+    insert_into(accounts)
+        .values(new_account)
+        .returning((id, username)) // Get the ID of the inserted record
+        .get_result::<(i32, String)>(conn) // Get the result, expecting an ID
+}
+
+// Insert a new profile using the account_id
+fn insert_new_profile(conn: &mut PgConnection, accountid: i32, username: &str,) -> Result<(), Error> {
+    use schema::userprofiles::dsl::*;
+
+    let new_profile = NewProfile {
+        account_id: accountid,
+        user_name: username,
+    };
+
+    insert_into(userprofiles)
+        .values(&new_profile)
+        .execute(conn) // Execute the insert
+        .map(|_| ()) // Return a unit value on success
+}
 
 async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountInfo>) -> impl Responder { // ther reason to pass them is that we need to access the pool and the form data
     //logic for the create account route
     println!("Testing in create_account route");
 
-    use schema::accounts::dsl::*; 
+    //use schema::accounts::dsl::*; 
     let new_user = form.into_inner();   //accessing the form data send from client, the data is in the form of CreateAccountInfo struct, automatically converted to json
     let hashed_password = match hash(&new_user.password, DEFAULT_COST) { // hashing the password
         Ok(h) => h,
@@ -50,15 +73,27 @@ async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountIn
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
-    match insert_into(accounts)
-        .values(&a_new_account)
-        .execute(&mut conn) // Pass a mutable reference to the connection
-    {
-        Ok(_) => HttpResponse::new(StatusCode::CREATED),
+    let (account_id, username) = match insert_new_account(&mut conn, &a_new_account) {
+        Ok(tuple) => tuple,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    // Insert a new profile using the retrieved account_id
+    match insert_new_profile(&mut conn, account_id, &username) {
+        Ok(_) => {
+            HttpResponse::Created() // Use the CREATED status code
+                .json(format!("Account and profile created with Account ID: {}", account_id)) // Include the account ID in the response
+        },
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 
-
+    // match insert_into(accounts)
+    //     .values(&a_new_account)
+    //     .execute(&mut conn) // Pass a mutable reference to the connection
+    // {
+    //     Ok(_) => HttpResponse::new(StatusCode::CREATED),
+    //     Err(_) => HttpResponse::InternalServerError().finish(),
+    // }
 
 }
 
@@ -96,7 +131,6 @@ async fn logout() -> impl Responder {
     "Logout"
 }
 
-
 fn create_database_pool() -> DbPool {  // this function setup a db connection pool
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");  // accessing db url and using .expect() to handle error
     let manager = ConnectionManager::<PgConnection>::new(database_url);  // creat instance of connection manager using the type pgconnection since we are using postgresql
@@ -104,7 +138,6 @@ fn create_database_pool() -> DbPool {  // this function setup a db connection po
         .build(manager)
         .expect("Failed to create pool.")
 }
-
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

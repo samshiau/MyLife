@@ -20,6 +20,8 @@ function App() {
   const [accountType, setAccountType] = useState('regular');
   const [loginPageOrNot, setLoginPageOrNot]=useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [accountID, setAccountID] = useState(null); // this is the account_id of the user who is logged in
+  const [userProfile, setUserProfile] = useState(null);
 
   // login function
   const handleLogin = (event) => {
@@ -44,6 +46,8 @@ function App() {
           setLoginPassword('');
           // Redirect to another page
           setIsLoggedIn(true);
+          setAccountID(response.data.account_id);
+          fetchUserProfile();
           // useHistory to navigate: let history = useHistory(); then use history.push('/dashboard');
 
         }
@@ -102,6 +106,20 @@ function App() {
     
 
   };
+
+
+  const fetchUserProfile = async () => {
+    try {
+      
+      const profileResponse = await axios.get('http://localhost:8080/obtain_user_profile',{ params: { id: accountID } });
+      if (profileResponse.status === 200) {
+        console.log('User profile:', profileResponse.data);
+        setUserProfile(profileResponse.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+    }
+  }; 
 
  // const handleLogout = (event) => {
   //  event.preventDefault(); // Prevents the default form submission action
@@ -202,28 +220,17 @@ function App() {
     </>
   );
 
-  const mainContent = (
-    <div className="container">
-    {/* Left section with import button and conversation list */}
-    <div className="left-section">
-      <button className="import-btn">Import Conversation</button>
-      <div className="conversation-list">
-        <div className="conversation">Conversation 1</div>
-        <div className="conversation">Conversation 2</div>
-        <div className="conversation">Conversation 3</div>
-        {/* Additional conversations can be added here */}
-      </div>
+  const mainContent = userProfile ? (
+    <div className="profile-container">
+      <h2>User Profile</h2>
+      {Object.entries(userProfile).map(([key, value], index) => (
+        <div key={index} className="profile-item">
+          <strong>{key}:</strong> {value || 'Not specified'}
+        </div>
+      ))}
     </div>
-
-    {/* Right section with a box for displaying messages */}
-    <div className="right-section">
-      <div className="message-box">
-        <h3>Messages from Server</h3>
-        <p>This is where messages from other servers are displayed.</p>
-        {/* Add more content as needed */}
-      </div>
-    </div>
-  </div>
+  ) : (
+    <p>Loading profile...</p>
   );
 
   // The JSX that is returned from the App component, which determines what is rendered on the screen

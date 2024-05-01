@@ -10,10 +10,11 @@ use diesel::insert_into;
 mod model; 
 mod schema;
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-use model::{NewAccount,Account,NewProfile};
+use model::{NewAccount,Account,NewProfile,ShowProfile};
 extern crate dotenv;
 use dotenv::dotenv;
 use diesel::result::Error;
+use serde::Serialize;
 
 
 #[derive(Deserialize)]
@@ -28,6 +29,19 @@ pub struct LoginInfo {
    usernamelogin: String,
    passwordlogin: String,
 }
+
+#[derive(Deserialize)]
+pub struct accountIDpackage {
+    acc_id: String,
+}
+
+
+#[derive(Serialize)]
+struct LoginResponse {
+    message: String,
+    account_id: i32,
+}
+
 
 fn insert_new_account(conn: &mut PgConnection, new_account: &NewAccount,) -> Result<(i32,String), Error> {
     use schema::accounts::dsl::*; 
@@ -107,24 +121,26 @@ async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Resp
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
-    //println!("connection was ok");
+    println!("connection was ok");
     let result = accounts.filter(username.eq(&login_info_form.usernamelogin))
         .first::<Account>(&mut conn);
     match result {
         Ok(account) => {
             // Verify the hashed password
             if verify(&login_info_form.passwordlogin, &account.password_hash).unwrap_or(false) {
-                HttpResponse::Ok().status(StatusCode::OK).body("Login successful") // Convert integer status code to StatusCode enum variant
+                let response = LoginResponse {
+                    message: "Login successful".to_string(),
+                    account_id: account.id,
+                };
+                HttpResponse::Ok().json(response)
+
             } else {
                 HttpResponse::Unauthorized().body("Invalid username or password")
             }
         },
         Err(_) => HttpResponse::Unauthorized().body("Invalid username or password"),
-            
-    }
-    
 
-    
+    }
 }
 
 async fn logout() -> impl Responder {
@@ -138,6 +154,41 @@ fn create_database_pool() -> DbPool {  // this function setup a db connection po
         .build(manager)
         .expect("Failed to create pool.")
 }
+
+async fn obtain_user_profile(pool: web::Data<DbPool>, form: web::Json<accountIDpackage>) -> impl Responder {
+    use schema::userprofiles::dsl::*;
+    use diesel::prelude::*;
+    let package = form.into_inner();
+    
+    let acc_id: i32 = match package.acc_id.parse() {
+        Ok(id) => id,
+        Err(_) => return HttpResponse::BadRequest().finish(), // Handle the error appropriately
+    };
+
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    let profile_result = userprofiles
+        .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
+        .first::<ShowProfile>(&mut conn); // Fetch the first result that matches the query
+
+    match profile_result {
+        Ok(profile_data) => {
+            HttpResponse::Ok().json(profile_data) // Send the profile data as a JSON response
+        },
+        Err(diesel::result::Error::NotFound) => {
+            HttpResponse::NotFound().json("Profile not found") // Send a not found response if no profile matches
+        },
+        Err(_) => {
+            HttpResponse::InternalServerError().finish() // Send a 500 response for any other error
+        }
+    }
+
+
+}
+
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -161,6 +212,7 @@ async fn main() -> std::io::Result<()> {
             .route("/create_account", web::post().to(create_account))   // the post in here means it will only response to post request(post meaning chaing data in the server)
             .route("/login", web::post().to(login))
             .route("/logout", web::get().to(logout))
+            .route("/obtain_user_profile", web::post().to(obtain_user_profile))
             // Add more routes here
     })
     .bind("127.0.0.1:8080")?

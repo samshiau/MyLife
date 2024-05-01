@@ -13,6 +13,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    journal (journal_id) {
+        journal_id -> Int4,
+        account_id -> Int4,
+        date_time -> Varchar,
+        title -> Varchar,
+        text -> Text,
+    }
+}
+
+diesel::table! {
     peopleinmylife (person_id) {
         person_id -> Int4,
         #[max_length = 50]
@@ -37,6 +47,7 @@ diesel::table! {
         #[max_length = 50]
         heritage_ethnicity -> Nullable<Varchar>,
         comfortlv -> Nullable<Int4>,
+        account_id -> Nullable<Int4>,
     }
 }
 
@@ -60,7 +71,6 @@ diesel::table! {
         occupation -> Nullable<Varchar>,
         #[max_length = 50]
         education_level -> Nullable<Varchar>,
-        people -> Nullable<Jsonb>,
         selfscore -> Nullable<Int4>,
         selfscorepeople -> Nullable<Int4>,
         #[max_length = 10]
@@ -74,7 +84,6 @@ diesel::table! {
         heritage_ethnicity -> Nullable<Varchar>,
         #[max_length = 20]
         sexual_preference -> Nullable<Varchar>,
-        journel -> Nullable<Array<Nullable<Text>>>,
     }
 }
 
@@ -82,6 +91,7 @@ diesel::joinable!(userprofiles -> accounts (account_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     accounts,
+    journal,
     peopleinmylife,
     posts,
     userprofiles,

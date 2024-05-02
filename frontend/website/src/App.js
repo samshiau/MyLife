@@ -4,7 +4,7 @@ import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
 import './maincontent.css';
 import axios from 'axios';
-import { useNavigate  } from 'react-router-dom';
+//import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
 function App() {
@@ -20,7 +20,7 @@ function App() {
   const [accountType, setAccountType] = useState('regular');
   const [loginPageOrNot, setLoginPageOrNot]=useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [accountID, setAccountID] = useState(null); // this is the account_id of the user who is logged in
+ // const [accountID, setAccountID] = useState(null); // this is the account_id of the user who is logged in
   const [userProfile, setUserProfile] = useState(null);
 
   // login function
@@ -46,8 +46,9 @@ function App() {
           setLoginPassword('');
           // Redirect to another page
           setIsLoggedIn(true);
-          setAccountID(response.data.account_id);
-          fetchUserProfile();
+          //setAccountID(response.data.account_id);
+          console.log('account_id is ...:', response.data.account_id);
+          fetchUserProfile(response.data.account_id);
           // useHistory to navigate: let history = useHistory(); then use history.push('/dashboard');
 
         }
@@ -108,18 +109,28 @@ function App() {
   };
 
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (accountID) => {
     try {
-      
-      const profileResponse = await axios.get('http://localhost:8080/obtain_user_profile',{ params: { id: accountID } });
+      // Properly pass the 'acc_id' as a query parameter in the URL
+      console.log('accountID before sending request was:', accountID);
+      const url = `http://localhost:8080/obtain_user_profile?acc_id=${accountID}`;
+      const profileResponse = await axios.get(url);
+  
       if (profileResponse.status === 200) {
         console.log('User profile:', profileResponse.data);
         setUserProfile(profileResponse.data);
+      } else {
+        console.log('Unexpected status:', profileResponse.status);
       }
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
     }
-  }; 
+  };
+
+  
+
+
+
 
  // const handleLogout = (event) => {
   //  event.preventDefault(); // Prevents the default form submission action

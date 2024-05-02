@@ -1,5 +1,5 @@
 extern crate diesel;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::StatusCode, http::header, middleware};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::header, middleware};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 use bcrypt::{hash, verify, DEFAULT_COST};  //password hashing library, the cost set a limit for the hashing for performance
@@ -30,10 +30,10 @@ pub struct LoginInfo {
    passwordlogin: String,
 }
 
-#[derive(Deserialize)]
-pub struct accountIDpackage {
-    acc_id: String,
-}
+// #[derive(Deserialize)]
+// pub struct AccountIDpackage {
+//     acc_id: String,
+// }
 
 
 #[derive(Serialize)]
@@ -41,6 +41,12 @@ struct LoginResponse {
     message: String,
     account_id: i32,
 }
+
+#[derive(Deserialize)]
+pub struct QueryInfo {
+    acc_id: String,
+}
+
 
 
 fn insert_new_account(conn: &mut PgConnection, new_account: &NewAccount,) -> Result<(i32,String), Error> {
@@ -155,24 +161,32 @@ fn create_database_pool() -> DbPool {  // this function setup a db connection po
         .expect("Failed to create pool.")
 }
 
-async fn obtain_user_profile(pool: web::Data<DbPool>, form: web::Json<accountIDpackage>) -> impl Responder {
+async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo>) -> impl Responder {
     use schema::userprofiles::dsl::*;
     use diesel::prelude::*;
-    let package = form.into_inner();
+
+    println!("Testing in obtain_user_profile route");
     
-    let acc_id: i32 = match package.acc_id.parse() {
-        Ok(id) => id,
-        Err(_) => return HttpResponse::BadRequest().finish(), // Handle the error appropriately
-    };
+     let acc_id: i32 = match info.acc_id.parse() {
+         Ok(id) => id,
+         Err(_) => return HttpResponse::BadRequest().finish(), // Handle the error appropriately
+     };
+
+     println!("Datatype conversion was ok, The account id is: {}", acc_id); 
 
     let mut conn = match pool.get() {
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
+    println!("db connection was ok");
+
+
     let profile_result = userprofiles
         .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
         .first::<ShowProfile>(&mut conn); // Fetch the first result that matches the query
+
+    println!("waiting for result");
 
     match profile_result {
         Ok(profile_data) => {
@@ -212,7 +226,7 @@ async fn main() -> std::io::Result<()> {
             .route("/create_account", web::post().to(create_account))   // the post in here means it will only response to post request(post meaning chaing data in the server)
             .route("/login", web::post().to(login))
             .route("/logout", web::get().to(logout))
-            .route("/obtain_user_profile", web::post().to(obtain_user_profile))
+            .route("/obtain_user_profile", web::get().to(obtain_user_profile))
             // Add more routes here
     })
     .bind("127.0.0.1:8080")?

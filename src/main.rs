@@ -153,12 +153,22 @@ async fn logout() -> impl Responder {
     "Logout"
 }
 
-fn create_database_pool() -> DbPool {  // this function setup a db connection pool
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");  // accessing db url and using .expect() to handle error
+fn create_database_pool() -> Result<DbPool, String> {  // this function setup a db connection pool
+    println!("Testing4");
+    let database_url = std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL must be set".to_string())?;
+    println!("Database URL: {}", database_url);
     let manager = ConnectionManager::<PgConnection>::new(database_url);  // creat instance of connection manager using the type pgconnection since we are using postgresql
-    r2d2::Pool::builder()  // calling builder method to build
-        .build(manager)
-        .expect("Failed to create pool.")
+    println!("Testing6");
+    match r2d2::Pool::builder().build(manager) {
+        Ok(pool) => {
+            println!("Connection pool created successfully.");
+            Ok(pool)
+        },
+        Err(e) => {
+            println!("Failed to create pool: {}", e);
+            Err(format!("Failed to create pool: {}", e))
+        },
+    }
 }
 
 async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo>) -> impl Responder {
@@ -208,8 +218,17 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 async fn main() -> std::io::Result<()> {
     println!("Testing1");
     dotenv().ok();  // loading the .env file
-    let pool = create_database_pool();  // calling the function to create db pool
     println!("Testing2");
+
+    let pool = match create_database_pool() {
+        Ok(pool) => pool,
+        Err(e) => {
+            eprintln!("{}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, e));
+        },
+    };
+
+    println!("Testing3");
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000") // Your frontend's address

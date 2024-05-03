@@ -4,6 +4,8 @@ import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
 import './maincontent.css';
 import axios from 'axios';
+import { Card, Container, Row, Col, Button } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 //import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
@@ -22,6 +24,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
  // const [accountID, setAccountID] = useState(null); // this is the account_id of the user who is logged in
   const [userProfile, setUserProfile] = useState(null);
+  const [showDetail, setShowDetail] = useState(false);
+  
 
   // login function
   const handleLogin = (event) => {
@@ -129,8 +133,17 @@ function App() {
 
   
 
+  const toggleDetail = () => {
+    setShowDetail(!showDetail);
+};
 
-
+const detailComp = (
+  <div>
+          <h1>Detail View</h1>
+          <p>Here is more detailed information.</p>
+          <Button onClick={toggleDetail}>Go Back</Button>
+      </div>
+);
 
  // const handleLogout = (event) => {
   //  event.preventDefault(); // Prevents the default form submission action
@@ -232,14 +245,21 @@ function App() {
   );
 
   const mainContent = userProfile ? (
-    <div className="profile-container">
+    <Container>
       <h2>User Profile</h2>
-      {Object.entries(userProfile).map(([key, value], index) => (
-        <div key={index} className="profile-item">
-          <strong>{key}:</strong> {value || 'Not specified'}
-        </div>
-      ))}
-    </div>
+      <Row>
+        {Object.entries(userProfile).map(([key, value], index) => (
+          <Col key={index} sm={12} md={6} lg={4}>
+            <Card className="mb-3" onClick={toggleDetail}>
+              <Card.Body>
+                <Card.Title>{key}</Card.Title>
+                <Card.Text>{value || 'Not specified'}</Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Container>
   ) : (
     <p>Loading profile...</p>
   );
@@ -249,7 +269,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />  
-        {isLoggedIn ? mainContent : (showCreateAccount ? createAccountForm : loginForm)}
+        {isLoggedIn ?(showDetail ? detailComp:mainContent ) : (showCreateAccount ? createAccountForm : loginForm)}
         {/* Button to toggle create account form is only shown if not logged in */}
         {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}    
       </header>

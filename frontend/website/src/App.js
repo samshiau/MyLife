@@ -25,7 +25,8 @@ function App() {
  // const [accountID, setAccountID] = useState(null); // this is the account_id of the user who is logged in
   const [userProfile, setUserProfile] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
-  
+  const [selectedCard, setSelectedCard] = useState(null);
+
 
   // login function
   const handleLogin = (event) => {
@@ -131,19 +132,26 @@ function App() {
     }
   };
 
+  const handleCardClick = (key, value) => {
+    setSelectedCard({ key, value });
+    setShowDetail(true);
+  };
   
 
   const toggleDetail = () => {
     setShowDetail(!showDetail);
 };
 
-const detailComp = (
-  <div>
-          <h1>Detail View</h1>
-          <p>Here is more detailed information.</p>
-          <Button onClick={toggleDetail}>Go Back</Button>
-      </div>
-);
+function DetailedComp({ cardData, toggleDetail }) {
+  return (
+    <div>
+      <h1>Detail View: {cardData.key}</h1>
+      <p>Here is more detailed information: {cardData.value}</p>
+      <Button onClick={toggleDetail}>Go Back</Button>
+    </div>
+  );
+}
+
 
  // const handleLogout = (event) => {
   //  event.preventDefault(); // Prevents the default form submission action
@@ -250,7 +258,7 @@ const detailComp = (
       <Row>
         {Object.entries(userProfile).map(([key, value], index) => (
           <Col key={index} sm={12} md={6} lg={4}>
-            <Card className="mb-3" onClick={toggleDetail}>
+            <Card className="mb-3" onClick={() => handleCardClick(key, value)}>
               <Card.Body>
                 <Card.Title>{key}</Card.Title>
                 <Card.Text>{value || 'Not specified'}</Card.Text>
@@ -269,7 +277,7 @@ const detailComp = (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />  
-        {isLoggedIn ?(showDetail ? detailComp:mainContent ) : (showCreateAccount ? createAccountForm : loginForm)}
+        {isLoggedIn ? (showDetail && selectedCard ? <DetailedComp cardData={selectedCard} toggleDetail={toggleDetail} /> : mainContent) : (showCreateAccount ? createAccountForm : loginForm)}
         {/* Button to toggle create account form is only shown if not logged in */}
         {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}    
       </header>

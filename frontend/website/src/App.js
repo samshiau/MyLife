@@ -145,8 +145,8 @@ function App() {
 function DetailedComp({ cardData, toggleDetail }) {
   return (
     <div>
-      <h1>Detail View: {cardData.key}</h1>
-      <p>Here is more detailed information: {cardData.value}</p>
+      <h1>{cardData.key}</h1>
+      <p>{cardData.value}</p>
       <Button onClick={toggleDetail}>Go Back</Button>
     </div>
   );
@@ -162,6 +162,7 @@ function DetailedComp({ cardData, toggleDetail }) {
   // JSX for the login form, which is conditionally rendered based on showCreateAccount
   const loginForm = (
     <>
+    <img src={logo} className="App-logo" alt="logo" /> 
     <h1>Welcome to myLife</h1>
     <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
@@ -253,30 +254,50 @@ function DetailedComp({ cardData, toggleDetail }) {
   );
 
   const mainContent = userProfile ? (
-    <Container>
-      <h2>User Profile</h2>
+    <Container style={{ maxWidth: '70%', margin: '0 auto', overflowX: 'auto' }}>
       <Row>
-        {Object.entries(userProfile).map(([key, value], index) => (
-          <Col key={index} sm={12} md={6} lg={4}>
-            <Card className="mb-3" onClick={() => handleCardClick(key, value)}>
-              <Card.Body>
-                <Card.Title>{key}</Card.Title>
-                <Card.Text>{value || 'Not specified'}</Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+        <Col xs={12} md={8} lg={6}>
+          <Row>
+            <Col xs={3} md={2} lg={1}>
+              <img src={logo} className="App-logo2" alt="logo" />
+            </Col>
+            <Col xs={9} md={6} lg={5}>
+              <h2>User Profile</h2>
+            </Col>
+            </Row>  
+          
+          <Row style={{ display: 'flex', flexDirection: 'row', width: 'auto' }}>
+            {Object.entries(userProfile).map(([key, value], index) => (
+              <Col key={index} xs={12}  style={{ minWidth: '300px' }}>
+                <Card className="custom-card" onClick={() => handleCardClick(key, value)}>
+                  <Card.Body>
+                    <Card.Title>{key}</Card.Title>
+                    <Card.Text>{value || 'Not specified'}</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Col>
+        <Col xs={12} md={4} lg={6}>  
+          <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black' }}>
+            <h3>Generative AI response</h3>
+            <p>Place any additional information or components here.</p>
+          </div>
+        </Col>
       </Row>
     </Container>
-  ) : (
-    <p>Loading profile...</p>
-  );
+) : (
+    <p>Unable to load your profile.</p>
+);
+
+
+
 
   // The JSX that is returned from the App component, which determines what is rendered on the screen
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />  
         {isLoggedIn ? (showDetail && selectedCard ? <DetailedComp cardData={selectedCard} toggleDetail={toggleDetail} /> : mainContent) : (showCreateAccount ? createAccountForm : loginForm)}
         {/* Button to toggle create account form is only shown if not logged in */}
         {!isLoggedIn && (showCreateAccount ? goBacktoLoginButton : createAccountButton)}    

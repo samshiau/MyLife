@@ -9,13 +9,12 @@ use actix_cors::Cors;
 use diesel::insert_into;
 mod model; 
 mod schema;
-type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 use model::{NewAccount,Account,NewProfile,ShowProfile};
 extern crate dotenv;
 use dotenv::dotenv;
 use diesel::result::Error;
 use serde::Serialize;
-
+type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[derive(Deserialize)]
 pub struct CreateAccountInfo {
@@ -30,11 +29,6 @@ pub struct LoginInfo {
    passwordlogin: String,
 }
 
-// #[derive(Deserialize)]
-// pub struct AccountIDpackage {
-//     acc_id: String,
-// }
-
 
 #[derive(Serialize)]
 struct LoginResponse {
@@ -47,6 +41,19 @@ pub struct QueryInfo {
     acc_id: String,
 }
 
+#[derive(Deserialize,Debug)]
+pub enum UpdateValue {
+    String(String),
+    Int(i32),
+}
+
+#[derive(Deserialize)]
+pub struct UpdateContentInfo {
+    account_id: i32,
+    field: String,
+    value: UpdateValue,
+     
+}
 
 
 fn insert_new_account(conn: &mut PgConnection, new_account: &NewAccount,) -> Result<(i32,String), Error> {
@@ -116,6 +123,77 @@ async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountIn
     // }
 
 }
+
+async fn change_db_data(pool: web::Data<DbPool>, form: web::Json<UpdateContentInfo>) -> impl Responder {
+    use diesel::prelude::*;
+    use schema::userprofiles::dsl::*;
+    let content= form.into_inner();
+   
+    let accountid = content.account_id;
+    let field = content.field;
+    let value = content.value;
+
+    println!(
+        "Updating account {}: field '{}', value '{:?}'",
+        accountid, field, value
+    );
+
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
+    let update_result = match value 
+    {
+        UpdateValue::Int(v) => 
+        {
+            match field.as_str() 
+            {
+                "age" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::age.eq(v)).execute(&mut conn),
+                "selfscore" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::selfscore.eq(v)).execute(&mut conn),
+                "selfscorepeople" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::selfscorepeople.eq(v)).execute(&mut conn),
+                // Add more fields as required
+                _ => Err(diesel::result::Error::NotFound),
+            }
+        }
+        UpdateValue::String(v) => 
+        {
+            match field.as_str() 
+            {
+                "mbti" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::mbti.eq(v)).execute(&mut conn),
+                "occupation" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::occupation.eq(v)).execute(&mut conn),
+                "education_level" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::education_level.eq(v)).execute(&mut conn),
+                "attachment_style" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::attachment_style.eq(v)).execute(&mut conn),
+                "medical_history" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::medical_history.eq(v)).execute(&mut conn),
+                "gender" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::gender.eq(v)).execute(&mut conn),
+                "heritage_ethnicity" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::heritage_ethnicity.eq(v)).execute(&mut conn),
+                "sexual_preference" => diesel::update(userprofiles.filter(account_id.eq(accountid)))
+                    .set(schema::userprofiles::sexual_preference.eq(v)).execute(&mut conn),
+                // Add more fields as required
+                _ => Err(diesel::result::Error::NotFound),
+            }
+        }
+    };
+
+    // Check result and return the appropriate response
+    match update_result {
+        Ok(_) => HttpResponse::Ok().json("Content updated successfully"),
+        Err(diesel::result::Error::NotFound) => HttpResponse::BadRequest().body(format!("Invalid field: {}", field)),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+
+}
+
 
 async fn login(pool: web::Data<DbPool>, form: web::Json<LoginInfo>) -> impl Responder {
     println!("Testing in login route");
@@ -246,6 +324,7 @@ async fn main() -> std::io::Result<()> {
             .route("/login", web::post().to(login))
             .route("/logout", web::get().to(logout))
             .route("/obtain_user_profile", web::get().to(obtain_user_profile))
+            .route("/change_db_data", web::patch().to(change_db_data))
             // Add more routes here
     })
     .bind("127.0.0.1:8080")?

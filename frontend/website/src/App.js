@@ -6,6 +6,7 @@ import './maincontent.css';
 import axios from 'axios';
 import { Card, Container, Row, Col, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import DetailedComp from './DetailedComp'; 
 //import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
@@ -132,25 +133,50 @@ function App() {
     }
   };
 
-  const handleCardClick = (key, value) => {
-    setSelectedCard({ key, value });
+  const handleCardClick = (key, value, ID) => {
+    setSelectedCard({ key, value, ID });
     setShowDetail(true);
   };
   
+
+
+  const changeContent = (key, value, id) => {
+    // i want to tell the server that i want to change a col in the userprofile by the account id and and the field "carddata.key" inside the column 
+    const updateContent = {
+      account_id: id,
+      field: key,
+      value: value
+    }
+
+    axios.patch(`http://localhost:8080/update_profile`, updateContent, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then((response) => {
+      if (response.status === 200) {
+        console.log('User profile updated successfully:', response.data);
+        // Update the local userProfile state with the new value
+        // ***** remember to update the userProfile state with the new value
+      }
+    })
+    .catch((error) => {
+      console.error('Error updating user profile:', error);
+    });
+
+  }
 
   const toggleDetail = () => {
     setShowDetail(!showDetail);
 };
 
-function DetailedComp({ cardData, toggleDetail }) {
-  return (
-    <div>
-      <h1>{cardData.key}</h1>
-      <p>{cardData.value}</p>
-      <Button onClick={toggleDetail}>Go Back</Button>
-    </div>
-  );
-}
+// function DetailedComp({ cardData, toggleDetail }) {
+//   return (
+//     <div>
+//       <h1>{cardData.key}</h1>
+//       <p>{cardData.value}</p>
+//       <Button onClick={toggleDetail}>Go Back</Button>
+//     </div>
+//   );
+// }
 
 
  // const handleLogout = (event) => {
@@ -266,18 +292,20 @@ function DetailedComp({ cardData, toggleDetail }) {
             </Col>
             </Row>  
           
-          <Row style={{ display: 'flex', flexDirection: 'row', width: 'auto' }}>
-            {Object.entries(userProfile).map(([key, value], index) => (
-              <Col key={index} xs={12}  style={{ minWidth: '300px' }}>
-                <Card className="custom-card" onClick={() => handleCardClick(key, value)}>
-                  <Card.Body>
-                    <Card.Title>{key}</Card.Title>
-                    <Card.Text>{value || 'Not specified'}</Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+            <Row style={{ display: 'flex', flexDirection: 'row', width: 'auto' }}>
+              {Object.entries(userProfile)
+              .filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key))
+              .map(([key, value], index) => (
+                <Col key={index} xs={12} style={{ minWidth: '300px' }}>
+                  <Card className="custom-card" onClick={() => handleCardClick(key, value, userProfile.account_id)}>
+                    <Card.Body>
+                      <Card.Title>{key}</Card.Title>
+                          <Card.Text>{value || 'Not specified'}</Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                ))}
+            </Row>
         </Col>
         <Col xs={12} md={4} lg={6}>  
           <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black' }}>

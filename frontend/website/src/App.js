@@ -6,7 +6,7 @@ import './maincontent.css';
 import axios from 'axios';
 import { Card, Container, Row, Col, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import DetailedComp from './DetailedComp'; 
+//import DetailedComp from './DetailedComp'; 
 //import { useNavigate  } from 'react-router-dom';
 
 // The App component definition. This is a functional component.
@@ -134,58 +134,91 @@ function App() {
   };
 
   const handleCardClick = (key, value, ID) => {
+    console.log('Card clicked:', key, value, ID);
     setSelectedCard({ key, value, ID });
     setShowDetail(true);
   };
   
+  const updateProfileKeyVal = (key, value) => {
+    setUserProfile((prevProfile) => ({
+      ...prevProfile, // Spread the existing properties into the new object
+      [key]: value, // Update only the specific key with a new value
+    }));
+  };
 
-
-  const changeContent = (key, value, id) => {
+  const changeContent = async (newvalue) => {
+    console.log('changeContent called   ........');
+    console.log(newvalue);
     // i want to tell the server that i want to change a col in the userprofile by the account id and and the field "carddata.key" inside the column 
     const updateContent = {
-      account_id: id,
-      field: key,
-      value: value
+      account_id: selectedCard.ID,
+      field: selectedCard.key,
+      value: newvalue,
     }
 
-    axios.patch(`http://localhost:8080/update_profile`, updateContent, {
-    headers: { 'Content-Type': 'application/json' },
-  })
+    console.log('the actual value is.....:',newvalue);
+    console.log('before api call');
+    console.log('updateContent will be:', updateContent);
+    axios.patch(`http://localhost:8080/change_db_data`, updateContent, {headers: { 'Content-Type': 'application/json' },})
     .then((response) => {
       if (response.status === 200) {
         console.log('User profile updated successfully:', response.data);
         // Update the local userProfile state with the new value
         // ***** remember to update the userProfile state with the new value
+        updateProfileKeyVal(selectedCard.key, selectedCard.value);
       }
     })
     .catch((error) => {
       console.error('Error updating user profile:', error);
     });
 
-  }
+  };
 
   const toggleDetail = () => {
     setShowDetail(!showDetail);
 };
 
-// function DetailedComp({ cardData, toggleDetail }) {
-//   return (
-//     <div>
-//       <h1>{cardData.key}</h1>
-//       <p>{cardData.value}</p>
-//       <Button onClick={toggleDetail}>Go Back</Button>
-//     </div>
-//   );
-// }
 
 
- // const handleLogout = (event) => {
-  //  event.preventDefault(); // Prevents the default form submission action
-    // Placeholder for the logout logic
+  function DetailedComp(cardData) {
+    const [value, setValue] = useState(cardData.value);
+  
+    // Handle changes to the textarea
+    const handleChange = (e) => {
+      // Log the event object
+      console.log(e); // The full event object
+      console.log(e.target); // The `textarea` DOM element
+      console.log(e.target.value); // The current value of the `textarea`
+  
+      // Update state
+      setValue(e.target.value);
+    };
+  
+    const handleSaveChanges = () => {
+      console.log('Saving changes:', value);
+      changeContent(value);
+      console.log('called changeContent');
+      toggleDetail(); // Optionally close detail view after saving
+    };
+  
+    return (
+      <div>
+        <h1>{cardData.key}</h1>
+        <textarea
+          value={value}
+          onChange={handleChange} // Update state when user types
+          rows={4}
+          style={{ width: '100%' }}
+        />
+        <div>
+          <Button onClick={handleSaveChanges}>Save Changes</Button>
+          <Button onClick={toggleDetail}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
 
- // };
 
-  // JSX for the login form, which is conditionally rendered based on showCreateAccount
   const loginForm = (
     <>
     <img src={logo} className="App-logo" alt="logo" /> 
@@ -335,3 +368,4 @@ function App() {
 }
 
 export default App; // Exporting the App component for use in other parts of the app
+//export { changeContent };

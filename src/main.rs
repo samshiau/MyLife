@@ -41,7 +41,8 @@ pub struct QueryInfo {
     acc_id: String,
 }
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
+#[serde(untagged)] 
 pub enum UpdateValue {
     String(String),
     Int(i32),
@@ -125,6 +126,7 @@ async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountIn
 }
 
 async fn change_db_data(pool: web::Data<DbPool>, form: web::Json<UpdateContentInfo>) -> impl Responder {
+    println!("Testing in change_db_data route");
     use diesel::prelude::*;
     use schema::userprofiles::dsl::*;
     let content= form.into_inner();
@@ -306,12 +308,12 @@ async fn main() -> std::io::Result<()> {
         },
     };
 
-    println!("Testing3");
+    println!("*************DB pool created successfully**************");
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000") // Your frontend's address
             .allowed_origin("http://192.168.1.147:3000")
-            .allowed_methods(vec!["GET", "POST", "OPTIONS"]) // Allowed HTTP methods
+            .allowed_methods(vec!["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"]) // Allowed HTTP methods
             .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
             .allowed_header(header::CONTENT_TYPE)
             .max_age(3600);

@@ -27,7 +27,10 @@ function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
-
+  const [messages, setMessages] = useState([
+    { sender: 'bot', text: 'Welcome to the chat!' }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
 
   // login function
   const handleLogin = (event) => {
@@ -133,6 +136,11 @@ function App() {
     }
   };
 
+  const sendMessage = async () => {
+    // send msg to backend 
+
+  }
+
   const handleCardClick = (key, value, ID) => {
     console.log('Card clicked:', key, value, ID);
     setSelectedCard({ key, value, ID });
@@ -157,6 +165,12 @@ function App() {
       ...prevProfile, // Spread the existing properties into the new object
       [key]: value, // Update only the specific key with a new value
     }));
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
   };
 
   const changeContent = async (newvalue, cardkey) => {
@@ -364,10 +378,57 @@ function App() {
             </Row>
         </Col>
         <Col xs={12} md={4} lg={6}>  
-          <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black' }}>
-            <h3>Generative AI response</h3>
-            <p>Place any additional information or components here.</p>
+        <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column' }}>
+          <h3>Generative AI Response</h3>
+          <div style={{ overflowY: 'scroll', flex: '1', marginBottom: '10px' }}>
+          {messages.map((message, index) => (
+          <div
+            key={index}
+            style={{
+              padding: '10px',
+              margin: '10px 0',
+              backgroundColor: message.sender === 'user' ? '#007bff' : '#f1f0f0',
+              color: message.sender === 'user' ? 'white' : 'black',
+              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
+              borderRadius: '8px',
+              maxWidth: '60%',
+              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
+            }}
+          >
+            {message.text}
           </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyPress}
+          placeholder="Type your message..."
+          style={{
+            flex: '1',
+            padding: '10px',
+            borderRadius: '4px',
+            border: '1px solid #ccc',
+            marginRight: '10px'
+          }}
+        />
+        <button
+          onClick={sendMessage}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Send
+        </button>
+      </div>
+    </div>
         </Col>
       </Row>
     </Container>

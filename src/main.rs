@@ -1,4 +1,5 @@
 extern crate diesel;
+use actix_web::dev::RequestHead;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder, http::header, middleware};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
@@ -14,7 +15,12 @@ extern crate dotenv;
 use dotenv::dotenv;
 use diesel::result::Error;
 use serde::Serialize;
+use async_openai::{types::CreateCompletionRequestArgs, Client};
+use futures::StreamExt;
+
+
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
 
 #[derive(Deserialize)]
 pub struct CreateAccountInfo {
@@ -255,28 +261,28 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
     use schema::userprofiles::dsl::*;
     use diesel::prelude::*;
 
-    println!("Testing in obtain_user_profile route");
+   // println!("Testing in obtain_user_profile route");
     
      let acc_id: i32 = match info.acc_id.parse() {
          Ok(id) => id,
          Err(_) => return HttpResponse::BadRequest().finish(), // Handle the error appropriately
      };
 
-     println!("Datatype conversion was ok, The account id is: {}", acc_id); 
+    // println!("Datatype conversion was ok, The account id is: {}", acc_id); 
 
     let mut conn = match pool.get() {
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
-    println!("db connection was ok");
+   // println!("db connection was ok");
 
 
     let profile_result = userprofiles
         .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
         .first::<ShowProfile>(&mut conn); // Fetch the first result that matches the query
 
-    println!("waiting for result");
+    //println!("waiting for result");
 
     match profile_result {
         Ok(profile_data) => {
@@ -293,12 +299,37 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 
 }
 
+async fn openai_api_request() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::new();
+
+    let request = CreateCompletionRequestArgs::default()
+        .model("gpt-3.5-turbo")
+        .n(1)
+        .prompt("hello hello hello")
+        .stream(true)
+        .max_tokens(1024_u16)
+        .build()?;
+
+        let mut stream = client.completions().create_stream(request).await?;
+
+        while let Some(response) = stream.next().await {
+            match response {
+                Ok(ccr) => ccr.choices.iter().for_each(|c| {
+                    print!("{}", c.text);
+                }),
+                Err(e) => eprintln!("{}", e),
+            }
+        }
+    
+        Ok(())
+
+}
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    println!("Testing1");
+    //println!("Testing1");
     dotenv().ok();  // loading the .env file
-    println!("Testing2");
+    //println!("Testing2");
 
     let pool = match create_database_pool() {
         Ok(pool) => pool,

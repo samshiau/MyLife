@@ -138,17 +138,37 @@ function App() {
     setSelectedCard({ key, value, ID });
     setShowDetail(true);
   };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false); // Set logged-in status to false
+    setUserProfile(null); // Clear user profile data
+    setSelectedCard(null); // Clear any selected card data
+    setLoginUsername(''); // Clear login username field
+    setLoginPassword(''); // Clear login password field
+    setShowDetail(false); // Reset detailed view
+    setShowCreateAccount(false); // Reset account creation form visibility
+    console.log('User logged out successfully.');
+  };
+
   
   const updateProfileKeyVal = (key, value) => {
+    console.log('Updating profile key:', key, 'with value:', value);
     setUserProfile((prevProfile) => ({
       ...prevProfile, // Spread the existing properties into the new object
       [key]: value, // Update only the specific key with a new value
     }));
   };
 
-  const changeContent = async (newvalue) => {
+  const changeContent = async (newvalue, cardkey) => {
     console.log('changeContent called   ........');
     console.log(newvalue);
+    console.log(cardkey);
+
+    if (["age", "selfscore", "selfscorepeople"].includes(cardkey)) {
+      newvalue = parseInt(newvalue); 
+    }
+
+
     // i want to tell the server that i want to change a col in the userprofile by the account id and and the field "carddata.key" inside the column 
     const updateContent = {
       account_id: selectedCard.ID,
@@ -165,7 +185,7 @@ function App() {
         console.log('User profile updated successfully:', response.data);
         // Update the local userProfile state with the new value
         // ***** remember to update the userProfile state with the new value
-        updateProfileKeyVal(selectedCard.key, selectedCard.value);
+        updateProfileKeyVal(selectedCard.key, newvalue);
       }
     })
     .catch((error) => {
@@ -180,9 +200,9 @@ function App() {
 
 
 
-  function DetailedComp(cardData) {
-    const [value, setValue] = useState(cardData.value);
-  
+  function DetailedComp() {
+    const [value, setValue] = useState(selectedCard.value);
+    
     // Handle changes to the textarea
     const handleChange = (e) => {
       // Log the event object
@@ -196,14 +216,14 @@ function App() {
   
     const handleSaveChanges = () => {
       console.log('Saving changes:', value);
-      changeContent(value);
+      changeContent(value, selectedCard.key);
       console.log('called changeContent');
       toggleDetail(); // Optionally close detail view after saving
     };
   
     return (
       <div>
-        <h1>{cardData.key}</h1>
+        <h1>{selectedCard.key}</h1>
         <textarea
           value={value}
           onChange={handleChange} // Update state when user types
@@ -323,7 +343,10 @@ function App() {
             <Col xs={9} md={6} lg={5}>
               <h2>User Profile</h2>
             </Col>
-            </Row>  
+            <Col>
+              <Button onClick={() => handleLogout()} >Logout</Button>
+            </Col>
+          </Row>  
           
             <Row style={{ display: 'flex', flexDirection: 'row', width: 'auto' }}>
               {Object.entries(userProfile)
@@ -368,4 +391,3 @@ function App() {
 }
 
 export default App; // Exporting the App component for use in other parts of the app
-//export { changeContent };

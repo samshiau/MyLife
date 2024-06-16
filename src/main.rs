@@ -16,7 +16,7 @@ use dotenv::dotenv;
 use diesel::result::Error;
 use serde::Serialize;
 use async_openai::{types::CreateCompletionRequestArgs, Client};
-use futures::StreamExt;
+//use futures::StreamExt;
 
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -60,6 +60,19 @@ pub struct UpdateContentInfo {
     field: String,
     value: UpdateValue,
      
+}
+
+#[derive(Deserialize)]
+    pub struct ChatMessage {
+        message: String,
+        qyery_account_id: i32,
+    }
+
+fn get_user_profile(conn: &PgConnection, acc_id: i32) -> Result<ShowProfile, Error> {
+        
+        userprofiles
+            .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
+            .first::<ShowProfile>(conn) // Fetch the first result that matches the query
 }
 
 
@@ -299,30 +312,63 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 
 }
 
-async fn openai_api_request() -> Result<(), Box<dyn std::error::Error>> {
+async fn openai_api_request(form: web::Json<ChatMessage>) -> Result<HttpResponse, actix_web::Error> {
+    let request_message_body = form.into_inner();
     let client = Client::new();
 
+    // Retrieve data according to the user
+    let mut conn = pool.get().map_err(|_| actix_web::error::ErrorInternalServerError("Failed to get DB connection"))?;
+    let user_profile_result = get_user_profile(&conn, request_message_body.qyery_account_id).map_err(|_| actix_web::error::ErrorInternalServerError("Failed to retrieve user profile"))?;
+    // Use the retrieved profile data (for demonstration purposes, let's assume we need user_profile.user_name)
+    let prompt: String = 
+    format!("This info is from an application that record user mental info and a chat message the will query about the user profile: 
+    Message query {} - 
+    User info: age {}, 
+    occupation: {}, 
+    education level:{}, 
+    how the person rate him/her self: {}, 
+    how the person think people rate him/her self {}, 
+    mbti: {}, 
+    attachment style: {}, 
+    medical history {}, 
+    gender: {},
+    ethinicity: {}.
+    Please answer the question in the message according to the user info", 
+    request_message_body.message,
+    user_profile_result.age,
+    user_profile_result.occupation,
+    user_profile_result.education_level,
+    user_profile_result.selfscore,
+    user_profile_result.selfscorepeople,
+    user_profile_result.mbti,
+    user_profile_result.attachment_style,
+    user_profile_result.medical_history,
+    user_profile_result.gender,
+    user_profile_result.heritage_ethnicity);
     let request = CreateCompletionRequestArgs::default()
         .model("gpt-3.5-turbo")
         .n(1)
-        .prompt("hello hello hello")
-        .stream(true)
+        .prompt(prompt)  // Use the message from the form
         .max_tokens(1024_u16)
-        .build()?;
+        .build()
+        .map_err(|e| {
+            eprintln!("Error building request: {}", e);
+            actix_web::error::ErrorInternalServerError("Error building request")
+        })?;
 
-        let mut stream = client.completions().create_stream(request).await?;
+    // Send the request to the OpenAI API
+    let response = client.completions().create(request).await.map_err(|e| {
+        eprintln!("Error sending request: {}", e);
+        actix_web::error::ErrorInternalServerError("Error sending request")
+    })?;
 
-        while let Some(response) = stream.next().await {
-            match response {
-                Ok(ccr) => ccr.choices.iter().for_each(|c| {
-                    print!("{}", c.text);
-                }),
-                Err(e) => eprintln!("{}", e),
-            }
-        }
-    
-        Ok(())
-
+    // Process the response
+    if let Some(choice) = response.choices.first() {
+        let reply_text = &choice.text;
+        Ok(HttpResponse::Ok().body(reply_text.clone()))
+    } else {
+        Ok(HttpResponse::InternalServerError().body("No response from OpenAI API"))
+    }
 }
 
 #[actix_rt::main]
@@ -358,6 +404,7 @@ async fn main() -> std::io::Result<()> {
             .route("/logout", web::get().to(logout))
             .route("/obtain_user_profile", web::get().to(obtain_user_profile))
             .route("/change_db_data", web::patch().to(change_db_data))
+            .route("/openai_api_request", web::get().to(openai_api_request))
             // Add more routes here
     })
     .bind("127.0.0.1:8080")?

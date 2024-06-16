@@ -17,17 +17,17 @@ pub struct ShowProfile {
     profile_id: i32,            // Serial primary key
     account_id: Option<i32>,            // Reference to accounts table,
     user_name: Option<String>,          // User name, up to 50 characters
-    age: Option<i32>,           // User's age
-    occupation: Option<String>, // Occupation, up to 50 characters
-    education_level: Option<String>, // Education level, up to 50 characters
-    selfscore: Option<i32>,     // Self-assessment score
-    selfscorepeople: Option<i32>, // Score based on people in the user's life
-    mbti: Option<String>,       // Myers-Briggs type, usually 4 characters
-    attachment_style: Option<String>, // Attachment style, up to 20 characters
-    medical_history: Option<String>,  // Medical history text
-    gender: Option<String>,     // Gender, up to 20 characters
-    heritage_ethnicity: Option<String>, // Heritage or ethnicity, up to 50 characters
-    sexual_preference: Option<String>, // Sexual preference, up to 20 characters
+    pub age: Option<i32>,           // User's age
+    pub occupation: Option<String>, // Occupation, up to 50 characters
+    pub education_level: Option<String>, // Education level, up to 50 characters
+    pub selfscore: Option<i32>,     // Self-assessment score
+    pub selfscorepeople: Option<i32>, // Score based on people in the user's life
+    pub mbti: Option<String>,       // Myers-Briggs type, usually 4 characters
+    pub attachment_style: Option<String>, // Attachment style, up to 20 characters
+    pub medical_history: Option<String>,  // Medical history text
+    pub gender: Option<String>,     // Gender, up to 20 characters
+    pub heritage_ethnicity: Option<String>, // Heritage or ethnicity, up to 50 characters
+    pub sexual_preference: Option<String>, // Sexual preference, up to 20 characters
 }
 
 

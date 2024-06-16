@@ -138,6 +138,14 @@ function App() {
 
   const sendMessage = async () => {
     // send msg to backend 
+    // collect info from struct, and the message in the input field
+    const message_package = {
+      message: newMessage,
+      id: userProfile.profile_id,
+    };
+
+    const response = await axios.post('http://localhost:8080/openai_api_request', message_package);
+    
 
   }
 

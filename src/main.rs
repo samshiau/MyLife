@@ -68,8 +68,10 @@ pub struct UpdateContentInfo {
         qyery_account_id: i32,
     }
 
-fn get_user_profile(conn: &PgConnection, acc_id: i32) -> Result<ShowProfile, Error> {
-        
+fn get_user_profile(conn: &mut PgConnection, acc_id: i32) -> Result<ShowProfile, Error> {
+    use schema::userprofiles::dsl::*;
+    use diesel::prelude::*;
+
         userprofiles
             .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
             .first::<ShowProfile>(conn) // Fetch the first result that matches the query
@@ -276,14 +278,14 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 
    // println!("Testing in obtain_user_profile route");
     
-     let acc_id: i32 = match info.acc_id.parse() {
+     let acc_id: i32 = match info.acc_id.parse() {  // since the acc_id is a string, we need to convert it to an integer
          Ok(id) => id,
          Err(_) => return HttpResponse::BadRequest().finish(), // Handle the error appropriately
      };
 
     // println!("Datatype conversion was ok, The account id is: {}", acc_id); 
 
-    let mut conn = match pool.get() {
+    let mut conn = match pool.get() {  // need to be mut since it might need to midufy its internial state in the future, so making it mut aoivd future need for changing the code
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
@@ -312,27 +314,28 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 
 }
 
-async fn openai_api_request(form: web::Json<ChatMessage>) -> Result<HttpResponse, actix_web::Error> {
+async fn openai_api_request(pool: web::Data<DbPool>,form: web::Json<ChatMessage>) -> Result<HttpResponse, actix_web::Error> {
     let request_message_body = form.into_inner();
     let client = Client::new();
 
     // Retrieve data according to the user
     let mut conn = pool.get().map_err(|_| actix_web::error::ErrorInternalServerError("Failed to get DB connection"))?;
-    let user_profile_result = get_user_profile(&conn, request_message_body.qyery_account_id).map_err(|_| actix_web::error::ErrorInternalServerError("Failed to retrieve user profile"))?;
+    let user_profile_result = get_user_profile(&mut conn, request_message_body.qyery_account_id).map_err(|_| actix_web::error::ErrorInternalServerError("Failed to retrieve user profile"))?;
+    
     // Use the retrieved profile data (for demonstration purposes, let's assume we need user_profile.user_name)
-    let prompt: String = 
-    format!("This info is from an application that record user mental info and a chat message the will query about the user profile: 
-    Message query {} - 
-    User info: age {}, 
-    occupation: {}, 
-    education level:{}, 
-    how the person rate him/her self: {}, 
-    how the person think people rate him/her self {}, 
-    mbti: {}, 
-    attachment style: {}, 
-    medical history {}, 
-    gender: {},
-    ethinicity: {}.
+    let prompt: String = format! (
+    "This info is from an application that record user mental info and a chat message the will query about the user profile: 
+    Message query {:?} - 
+    User info: age {:?}, 
+    occupation: {:?}, 
+    education level:{:?}, 
+    how the person rate him/her self: {:?}, 
+    how the person think people rate him/her self {:?}, 
+    mbti: {:?}, 
+    attachment style: {:?}, 
+    medical history {:?}, 
+    gender: {:?},
+    ethinicity: {:?}.
     Please answer the question in the message according to the user info", 
     request_message_body.message,
     user_profile_result.age,
@@ -345,6 +348,7 @@ async fn openai_api_request(form: web::Json<ChatMessage>) -> Result<HttpResponse
     user_profile_result.medical_history,
     user_profile_result.gender,
     user_profile_result.heritage_ethnicity);
+
     let request = CreateCompletionRequestArgs::default()
         .model("gpt-3.5-turbo")
         .n(1)

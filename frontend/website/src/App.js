@@ -137,17 +137,38 @@ function App() {
   };
 
   const sendMessage = async () => {
-    // send msg to backend 
-    // collect info from struct, and the message in the input field
+    // Collect info from struct and the message in the input field
     const message_package = {
       message: newMessage,
-      id: userProfile.profile_id,
+      query_account_id: userProfile.account_id,
     };
 
-    const response = await axios.post('http://localhost:8080/openai_api_request', message_package);
-    
-
-  }
+    console.log('Message package:', message_package);
+  
+    try {
+      // Send the message to the backend
+      const response = await axios.post('http://localhost:8080/openai_api_request', message_package);
+  
+      if (response.status === 200) {
+        // Update the messages state with the response from the backend
+        const botMessage = response.data; // Assuming the response contains the bot's message
+  
+        setMessages(prevMessages => [
+          ...prevMessages,
+          { sender: 'user', text: newMessage }, // Add the user's message
+          { sender: 'bot', text: botMessage }  // Add the bot's response
+        ]);
+  
+        // Clear the input field
+        setNewMessage('');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Optionally, you can display an error message to the user
+      alert('Failed to send message. Please try again.');
+    }
+  };
+  
 
   const handleCardClick = (key, value, ID) => {
     console.log('Card clicked:', key, value, ID);
@@ -175,7 +196,7 @@ function App() {
     }));
   };
 
-  const handleKeyPress = (event) => {
+  const handle_Message_KeyPress = (event) => {
     if (event.key === 'Enter') {
       sendMessage();
     }
@@ -293,7 +314,7 @@ function App() {
         </form>
     </>
   );
-  const createAccountButton=(<button className="createANDlogin" onClick={() => {setShowCreateAccount(true); setLoginPageOrNot(false); }}> Create Account</button>);
+  const createAccountButton=(<button className="createANDlogin" onClick={() => {setShowCreateAccount(true); setLoginPageOrNot(false); }}>Create Account</button>);
   const goBacktoLoginButton=(<button className="createANDlogin" onClick={() => {setShowCreateAccount(false); setLoginPageOrNot(true); }}>Back to Login</button>);
 
   // JSX for the create account form, which includes additional fields and a dropdown
@@ -390,29 +411,30 @@ function App() {
           <h3>Generative AI Response</h3>
           <div style={{ overflowY: 'scroll', flex: '1', marginBottom: '10px' }}>
           {messages.map((message, index) => (
-          <div
-            key={index}
-            style={{
-              padding: '10px',
-              margin: '10px 0',
-              backgroundColor: message.sender === 'user' ? '#007bff' : '#f1f0f0',
-              color: message.sender === 'user' ? 'white' : 'black',
-              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
-              borderRadius: '8px',
-              maxWidth: '60%',
-              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
-            }}
-          >
-            {message.text}
+            <div
+              key={index}
+              style={{
+                padding: '10px',
+                margin: '10px 0',
+                backgroundColor: message.sender === 'user' ? '#007bff' : '#f1f0f0',
+                color: message.sender === 'user' ? 'white' : 'black',
+                alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                borderRadius: '8px',
+                maxWidth: '60%',
+                
+              }}
+            >
+          {message.text}
           </div>
-        ))}
-      </div>
+          ))}
+</div>
+
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onKeyDown={handle_Message_KeyPress}
           placeholder="Type your message..."
           style={{
             flex: '1',

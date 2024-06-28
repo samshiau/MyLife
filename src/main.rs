@@ -15,7 +15,11 @@ extern crate dotenv;
 use dotenv::dotenv;
 use diesel::result::Error;
 use serde::Serialize;
-use async_openai::{types::CreateCompletionRequestArgs, Client};
+use std::panic;
+use async_openai::{types::CreateCompletionRequestArgs, Client, config::OpenAIConfig};
+//use async_openai::{Client, types::{CreateChatCompletionRequest, ChatCompletionMessage}, config::OpenAIConfig};
+
+//use std::error::Error;
 //use futures::StreamExt;
 
 
@@ -65,16 +69,29 @@ pub struct UpdateContentInfo {
 #[derive(Deserialize)]
     pub struct ChatMessage {
         message: String,
-        qyery_account_id: i32,
+        query_account_id: i32,
     }
 
 fn get_user_profile(conn: &mut PgConnection, acc_id: i32) -> Result<ShowProfile, Error> {
     use schema::userprofiles::dsl::*;
     use diesel::prelude::*;
 
-        userprofiles
+    println!("Testing in obtain_user_profile function..... using account id {}",acc_id);
+
+    let result = userprofiles
             .filter(account_id.eq(acc_id)) // Ensure the field name matches your schema
-            .first::<ShowProfile>(conn) // Fetch the first result that matches the query
+            .first::<ShowProfile>(conn); // Fetch the first result that matches the query
+
+    match result {
+        Ok(profile_data) => Ok(profile_data),
+        Err(e) => {
+            eprintln!("Error retrieving profile: {:?}", e);
+            Err(e)
+        }
+    
+
+    }
+
 }
 
 
@@ -255,20 +272,37 @@ async fn logout() -> impl Responder {
 }
 
 fn create_database_pool() -> Result<DbPool, String> {  // this function setup a db connection pool
-    println!("Testing4");
-    let database_url = std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL must be set".to_string())?;
+    println!("Starting to create database pool...");
+
+    let database_url = std::env::var("DATABASE_URL")
+        .map_err(|_| "DATABASE_URL must be set".to_string())?;
     println!("Database URL: {}", database_url);
-    let manager = ConnectionManager::<PgConnection>::new(database_url);  // creat instance of connection manager using the type pgconnection since we are using postgresql
-    println!("Testing6");
-    match r2d2::Pool::builder().build(manager) {
-        Ok(pool) => {
+
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    println!("Connection manager created.");
+
+    let pool_result = panic::catch_unwind(|| {
+        r2d2::Pool::builder().build(manager)
+    });
+
+    match pool_result {
+        Ok(Ok(pool)) => {
             println!("Connection pool created successfully.");
             Ok(pool)
-        },
-        Err(e) => {
-            println!("Failed to create pool: {}", e);
-            Err(format!("Failed to create pool: {}", e))
-        },
+        }
+        Ok(Err(e)) => {
+            println!("Failed to create pool: {:?}", e);
+
+           // if let Some(source) = e.source() {
+            //    println!("Caused by: {:?}", source);
+          //  }
+
+            Err(format!("Failed to create pool: {:?}", e))
+        }
+        Err(panic_info) => {
+            println!("A panic occurred while creating the pool: {:?}", panic_info);
+            Err("A panic occurred while creating the pool".to_string())
+        }
     }
 }
 
@@ -315,13 +349,22 @@ async fn obtain_user_profile(pool: web::Data<DbPool>, info: web::Query<QueryInfo
 }
 
 async fn openai_api_request(pool: web::Data<DbPool>,form: web::Json<ChatMessage>) -> Result<HttpResponse, actix_web::Error> {
+    println!("inside openai request function");
     let request_message_body = form.into_inner();
-    let client = Client::new();
-
+    println!("after getting the message body");
+    let api_key = std::env::var("OPENAI_API_KEY").map_err(|_| actix_web::error::ErrorInternalServerError("API key not set"))?;
+    println!("after getting the api key");
+    let config = OpenAIConfig::new().with_api_key(api_key);
+    println!("after getting the config");
+    let client = Client::with_config(config);
+    println!("after getting the client");
     // Retrieve data according to the user
+    println!("setting up db connection");
     let mut conn = pool.get().map_err(|_| actix_web::error::ErrorInternalServerError("Failed to get DB connection"))?;
-    let user_profile_result = get_user_profile(&mut conn, request_message_body.qyery_account_id).map_err(|_| actix_web::error::ErrorInternalServerError("Failed to retrieve user profile"))?;
+    println!("getting user profile");
+    let user_profile_result = get_user_profile(&mut conn, request_message_body.query_account_id).map_err(|_| actix_web::error::ErrorInternalServerError("Failed to retrieve user profile"))?;
     
+    println!("formatting prompt");
     // Use the retrieved profile data (for demonstration purposes, let's assume we need user_profile.user_name)
     let prompt: String = format! (
     "This info is from an application that record user mental info and a chat message the will query about the user profile: 
@@ -349,8 +392,10 @@ async fn openai_api_request(pool: web::Data<DbPool>,form: web::Json<ChatMessage>
     user_profile_result.gender,
     user_profile_result.heritage_ethnicity);
 
+    println!("after formatting prompt");
+
     let request = CreateCompletionRequestArgs::default()
-        .model("gpt-3.5-turbo")
+        .model("gpt-3.5-turbo-instruct")
         .n(1)
         .prompt(prompt)  // Use the message from the form
         .max_tokens(1024_u16)
@@ -359,6 +404,8 @@ async fn openai_api_request(pool: web::Data<DbPool>,form: web::Json<ChatMessage>
             eprintln!("Error building request: {}", e);
             actix_web::error::ErrorInternalServerError("Error building request")
         })?;
+
+    println!("sending request");
 
     // Send the request to the OpenAI API
     let response = client.completions().create(request).await.map_err(|e| {
@@ -408,7 +455,7 @@ async fn main() -> std::io::Result<()> {
             .route("/logout", web::get().to(logout))
             .route("/obtain_user_profile", web::get().to(obtain_user_profile))
             .route("/change_db_data", web::patch().to(change_db_data))
-            .route("/openai_api_request", web::get().to(openai_api_request))
+            .route("/openai_api_request", web::post().to(openai_api_request))
             // Add more routes here
     })
     .bind("127.0.0.1:8080")?

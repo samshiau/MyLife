@@ -376,10 +376,9 @@ function App() {
   );
 
   const mainContent = userProfile ? (
-    <Container style={{ maxWidth: '70%', margin: '0 auto', overflowX: 'auto' }}>
+    <Container style={{ maxWidth: '70%', margin: '0 auto', }}>
       <Row>
-        <Col xs={12} md={8} lg={6}>
-          <Row>
+      <Row>
             <Col xs={3} md={2} lg={1}>
               <img src={logo} className="App-logo2" alt="logo" />
             </Col>
@@ -390,8 +389,10 @@ function App() {
               <Button onClick={() => handleLogout()} >Logout</Button>
             </Col>
           </Row>  
+        <Col xs={12} md={8} lg={6} style={{ height: '100%' }}>
           
-            <Row style={{ display: 'flex', flexDirection: 'row', width: 'auto' }}>
+          
+          <Row style={{ display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%', overflowY: 'auto' }}>
               {Object.entries(userProfile)
               .filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key))
               .map(([key, value], index) => (
@@ -404,12 +405,12 @@ function App() {
                   </Card>
                 </Col>
                 ))}
-            </Row>
+          </Row>
         </Col>
-        <Col xs={12} md={4} lg={6}>  
-        <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column' }}>
+        <Col xs={12} md={4} lg={6} style={{ height: '100%' }}>  
+        <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column',overflowY: 'auto' }}>
           <h3>Generative AI Response</h3>
-          <div style={{ overflowY: 'scroll', flex: '1', marginBottom: '10px' }}>
+          <div style={{ overflowY: 'auto', flex: '1', marginBottom: '10px' }}>
           {messages.map((message, index) => (
             <div
               key={index}

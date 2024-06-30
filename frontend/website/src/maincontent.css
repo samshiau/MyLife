@@ -60,9 +60,10 @@
 
 
 .custom-card {
-    height: 300px !important; /* Fixed height - adjust if you need it responsive */
+    height: 100px !important; /* Fixed height - adjust if you need it responsive */
     max-width: 830px !important; /* Maximum width */
     width: 100% !important; /* Makes the width responsive */
-    margin-bottom: 10px;
-    margin-top: 20px;
+    margin-bottom: 0px;
+    margin-top: 10px;
+    
 }

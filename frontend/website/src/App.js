@@ -28,7 +28,7 @@ function App() {
   const [showDetail, setShowDetail] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Welcome to the chat!' }
+    { sender: 'bot', text: 'Ask AI anything about your profile!' }
   ]);
   const [newMessage, setNewMessage] = useState('');
 
@@ -376,7 +376,7 @@ function App() {
   );
 
   const mainContent = userProfile ? (
-  <Container style={{ maxWidth: '70%', margin: '0 auto', }}>
+  <Container style={{ maxWidth: '60%', margin: '0 auto', }}>
     
       
       {/* First row */}
@@ -387,14 +387,14 @@ function App() {
           </Row>
 
           <Row>
-            <Col> <Button onClick={() => handleLogout()} >Logout</Button> </Col>
+            <Col> <Button onClick={() => handleLogout()}  style={{ width: '65px', fontSize: '14px' }} >Logout</Button> </Col>
           </Row>
         </Col> 
 
 
         {/* Profile info */}
-        <Col xs={5} md={5} lg={5} style={{ height: '100%' }}>
-          <Row style={{ display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%',scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+        <Col xs={4} md={4} lg={4} style={{ height: '100%', backgroundColor: 'grey', borderRadius: '10px' }}>
+          <Row style={{ margin: '0px', display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%',scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
           {Object.entries(userProfile).filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key)).map(([key, value], index) => (
             <Col key={index} xs={12} style={{ minWidth: '300px' }}>
               <Card className="custom-card" onClick={() => handleCardClick(key, value, userProfile.account_id)}>
@@ -409,15 +409,15 @@ function App() {
         </Col>
        
         
-        <Col xs={1} md={1} lg={1} style={{ height: '100%' }}>
+        <Col xs={1} md={1} lg={1} className="d-flex align-items-center justify-content-center">
           <img src={logo} className="App-logo2" alt="logo" />
         </Col>
         
 
         {/* Chat box */}
         <Col xs={5} md={5} lg={5} style={{ height: '100%' }}>  
-          <div style={{ padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column',overflowY: 'auto' }}>
-            <h3>Generative AI Response</h3>
+          <div style={{ marginTop: '0px' ,padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column',overflowY: 'auto', borderRadius: '10px' }}>
+            <h4>Generative AI Response</h4>
               <div style={{ overflowY: 'auto', flex: '1', marginBottom: '10px' }}>
                 {messages.map((message, index) => 
                 (
@@ -444,7 +444,13 @@ function App() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={handle_Message_KeyPress}
                 placeholder="Type your message..."
-                style={{flex: '1', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginRight: '10px'}}
+                style={{
+                  flex: '1', 
+                  padding: '10px', 
+                  borderRadius: '10px', 
+                  border: '1px solid #ccc', 
+                  marginRight: '10px', 
+                  width: '80%'}}
               />
               <button
                 onClick={sendMessage}
@@ -454,12 +460,14 @@ function App() {
                   backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '10px',
                   cursor: 'pointer'
                 }}>Send</button>
             </div>
           </div>
         </Col>
+
+       {/* <Col xs={1} md={1} lg={1}></Col> */}
 
       </Row>
     

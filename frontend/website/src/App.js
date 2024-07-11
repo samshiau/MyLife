@@ -4,7 +4,7 @@ import logo from './myLifeIcon.png'; // Importing the logo image
 import './App.css'; // Importing the stylesheet for the App component
 import './maincontent.css';
 import axios from 'axios';
-import { Card, Container, Row, Col, Button } from 'react-bootstrap';
+import { Card, Container, Row, Col, Button, Tab, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 //import DetailedComp from './DetailedComp'; 
 //import { useNavigate  } from 'react-router-dom';
@@ -376,101 +376,123 @@ function App() {
   );
 
   const mainContent = userProfile ? (
-  <Container style={{ maxWidth: '60%', margin: '0 auto', }}>
-    
-      
-      {/* First row */}
+    <Container style={{ maxWidth: '60%', margin: '0 auto', }}>
+    <Tab.Container defaultActiveKey="first">
       <Row>
-        <Col xs={1} md={1} lg={1} style={{ height: '100%' }}>
+        <Col xs={1} md={1} lg={1}>
           <Row>
-            <Col> <h6>User Profile</h6> </Col>
-          </Row>
+            <Nav variant="pills" className="flex-column">
 
+              <Nav.Item>
+                <Nav.Link eventKey="first" style={{ fontSize: '18px' }}>Profile</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="second" style={{ fontSize: '18px' }}>Tab 2</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="third" style={{ fontSize: '18px' }}>Tab 3</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="fourth" style={{ fontSize: '18px' }}>Tab 4</Nav.Link>
+              </Nav.Item>
+
+            </Nav>
+          </Row>
           <Row>
-            <Col> <Button onClick={() => handleLogout()}  style={{ width: '65px', fontSize: '14px' }} >Logout</Button> </Col>
+            <Col> <Button onClick={() => handleLogout()} style={{ width: '65px', fontSize: '14px' }}>Logout</Button> </Col>
           </Row>
-        </Col> 
-
-
-        {/* Profile info */}
-        <Col xs={4} md={4} lg={4} style={{ height: '100%', backgroundColor: 'grey', borderRadius: '10px' }}>
-          <Row style={{ margin: '0px', display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%',scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
-          {Object.entries(userProfile).filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key)).map(([key, value], index) => (
-            <Col key={index} xs={12} style={{ minWidth: '300px' }}>
-              <Card className="custom-card" onClick={() => handleCardClick(key, value, userProfile.account_id)}>
-                <Card.Body>
-                  <Card.Title>{key}</Card.Title>
-                  <Card.Text>{value || 'Not specified'}</Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-          </Row>
-        </Col>
-       
-        
-        <Col xs={1} md={1} lg={1} className="d-flex align-items-center justify-content-center">
+          <Row>
           <img src={logo} className="App-logo2" alt="logo" />
+          </Row>
         </Col>
-        
-
-        {/* Chat box */}
-        <Col xs={5} md={5} lg={5} style={{ height: '100%' }}>  
-          <div style={{ marginTop: '0px' ,padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column',overflowY: 'auto', borderRadius: '10px' }}>
-            <h4>Generative AI Response</h4>
-              <div style={{ overflowY: 'auto', flex: '1', marginBottom: '10px' }}>
-                {messages.map((message, index) => 
-                (
-                <div
-                  key={index}
-                  style={{
-                  padding: '10px',
-                  margin: '10px 0',
-                  backgroundColor: message.sender === 'user' ? '#007bff' : '#f1f0f0',
-                  color: message.sender === 'user' ? 'white' : 'black',
-                  alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                  borderRadius: '8px',
-                  maxWidth: '60%',
-                }}>
-                {message.text}
-              </div>
-              ))}
-              </div>
-
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handle_Message_KeyPress}
-                placeholder="Type your message..."
-                style={{
-                  flex: '1', 
-                  padding: '10px', 
-                  borderRadius: '10px', 
-                  border: '1px solid #ccc', 
-                  marginRight: '10px', 
-                  width: '80%'}}
-              />
-              <button
-                onClick={sendMessage}
-                style=
-                {{
-                  padding: '10px 20px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  cursor: 'pointer'
-                }}>Send</button>
-            </div>
-          </div>
+        <Col xs={11} md={11} lg={11}>
+          <Tab.Content style={{ height: '100%' }}>
+            <Tab.Pane eventKey="first" style={{ height: '100%' }}>
+              {userProfile ? (
+                <Row style={{ height: '70%' }}>
+                  
+                  <Col xs={5} md={5} lg={5} style={{ height: '100%', backgroundColor: 'grey', borderRadius: '10px' }}>
+                    <Row style={{ margin: '0px', display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+                      {Object.entries(userProfile).filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key)).map(([key, value], index) => (
+                        <Col key={index} xs={12} style={{ minWidth: '300px' }}>
+                          <Card className="custom-card" onClick={() => handleCardClick(key, value, userProfile.account_id)}>
+                            <Card.Body>
+                              <Card.Title>{key}</Card.Title>
+                              <Card.Text>{value || 'Not specified'}</Card.Text>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Col>
+                 
+                  <Col xs={6} md={6} lg={6} style={{ height: '100%' }}>
+                    <div style={{ marginTop: '0px', padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column', overflowY: 'auto', borderRadius: '10px' }}>
+                      <h4>Generative AI Response</h4>
+                      <div style={{ overflowY: 'auto', flex: '1', marginBottom: '10px' }}>
+                        {messages.map((message, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              padding: '10px',
+                              margin: '10px 0',
+                              backgroundColor: message.sender === 'user' ? '#007bff' : '#f1f0f0',
+                              color: message.sender === 'user' ? 'white' : 'black',
+                              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                              borderRadius: '8px',
+                              maxWidth: '60%',
+                            }}>
+                            {message.text}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          onKeyDown={handle_Message_KeyPress}
+                          placeholder="Type your message..."
+                          style={{
+                            flex: '1',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            border: '1px solid #ccc',
+                            marginRight: '10px',
+                            width: '80%'
+                          }}
+                        />
+                        <button
+                          onClick={sendMessage}
+                          style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            cursor: 'pointer'
+                          }}>Send</button>
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              ) : (
+                <p>Unable to load your profile.</p>
+              )}
+            </Tab.Pane>
+            <Tab.Pane eventKey="second">
+              <Row></Row>
+            </Tab.Pane>
+            <Tab.Pane eventKey="third">
+              <Row></Row>
+            </Tab.Pane>
+            <Tab.Pane eventKey="fourth">
+             <Row></Row>
+            </Tab.Pane>
+          </Tab.Content>
         </Col>
-
-       {/* <Col xs={1} md={1} lg={1}></Col> */}
-
       </Row>
-    
+    </Tab.Container>
   </Container>
 ) : (
     <p>Unable to load your profile.</p>

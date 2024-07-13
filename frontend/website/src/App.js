@@ -6,6 +6,7 @@ import './maincontent.css';
 import axios from 'axios';
 import { Card, Container, Row, Col, Button, Tab, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import TimelineUI from './components/TimelineUI';
 //import DetailedComp from './DetailedComp'; 
 //import { useNavigate  } from 'react-router-dom';
 
@@ -376,9 +377,13 @@ function App() {
   );
 
   const mainContent = userProfile ? (
-    <Container style={{ maxWidth: '60%', margin: '0 auto', }}>
+  <Container style={{ maxWidth: '90%', margin: '0 auto', }}>
     <Tab.Container defaultActiveKey="first">
-      <Row>
+      {/* Outermost row */}
+      <Row style={{ width:'100%' }}>
+
+
+        {/* Tabs column */}
         <Col xs={1} md={1} lg={1}>
           <Row>
             <Nav variant="pills" className="flex-column">
@@ -387,10 +392,10 @@ function App() {
                 <Nav.Link eventKey="first" style={{ fontSize: '18px' }}>Profile</Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="second" style={{ fontSize: '18px' }}>Tab 2</Nav.Link>
+                <Nav.Link eventKey="second" style={{ fontSize: '18px' }}>Timeline</Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="third" style={{ fontSize: '18px' }}>Tab 3</Nav.Link>
+                <Nav.Link eventKey="third" style={{ fontSize: '18px' }}>Network</Nav.Link>
               </Nav.Item>
               <Nav.Item>
                 <Nav.Link eventKey="fourth" style={{ fontSize: '18px' }}>Tab 4</Nav.Link>
@@ -399,18 +404,27 @@ function App() {
             </Nav>
           </Row>
           <Row>
-            <Col> <Button onClick={() => handleLogout()} style={{ width: '65px', fontSize: '14px' }}>Logout</Button> </Col>
+            <Col> 
+              <Button onClick={() => handleLogout()} style={{ width: '65px', fontSize: '14px' }}>Logout</Button> 
+            </Col>
           </Row>
           <Row>
-          <img src={logo} className="App-logo2" alt="logo" />
+            <img src={logo} className="App-logo2" alt="logo" />
           </Row>
         </Col>
-        <Col xs={11} md={11} lg={11}>
-          <Tab.Content style={{ height: '100%' }}>
-            <Tab.Pane eventKey="first" style={{ height: '100%' }}>
+
+
+        {/* Page column  */}
+        <Col xs={10} md={10} lg={10}>
+          <Tab.Content style={{ height: '100%', width:'100%' }}>
+            {/* All the tabs */}
+
+            {/* Prfile tab */}
+            <Tab.Pane eventKey="first" id="profile-tab">
               {userProfile ? (
-                <Row style={{ height: '70%' }}>
-                  
+                <Row style={{ height: '70%', width:'100%' }}>
+
+                  {/* General user info and summary */}
                   <Col xs={5} md={5} lg={5} style={{ height: '100%', backgroundColor: 'grey', borderRadius: '10px' }}>
                     <Row style={{ margin: '0px', display: 'flex', flexDirection: 'row', width: '100%', overflowX: 'auto', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
                       {Object.entries(userProfile).filter(([key, value]) => !['profile_id', 'account_id', 'user_name'].includes(key)).map(([key, value], index) => (
@@ -426,6 +440,7 @@ function App() {
                     </Row>
                   </Col>
                  
+                  {/* Chat box */}
                   <Col xs={6} md={6} lg={6} style={{ height: '100%' }}>
                     <div style={{ marginTop: '0px', padding: '20px', backgroundColor: '#f8f9fa', height: '100%', boxSizing: 'border-box', color: 'black', display: 'flex', flexDirection: 'column', overflowY: 'auto', borderRadius: '10px' }}>
                       <h4>Generative AI Response</h4>
@@ -480,17 +495,30 @@ function App() {
                 <p>Unable to load your profile.</p>
               )}
             </Tab.Pane>
-            <Tab.Pane eventKey="second">
-              <Row></Row>
+
+            {/*Timeline tab*/}
+            <Tab.Pane eventKey="second" style={{ height: '100%', width: '100%' }}>
+             <Row style={{ height: '100%', width:'100%' }}>
+              <Col Col xs={12} md={12} lg={12}>
+                <TimelineUI />
+              </Col>
+             </Row> 
             </Tab.Pane>
+
+            {/*Network tab*/}
             <Tab.Pane eventKey="third">
               <Row></Row>
             </Tab.Pane>
+
+            {/*Profile sharing management tab*/}
             <Tab.Pane eventKey="fourth">
              <Row></Row>
             </Tab.Pane>
+
           </Tab.Content>
         </Col>
+
+
       </Row>
     </Tab.Container>
   </Container>

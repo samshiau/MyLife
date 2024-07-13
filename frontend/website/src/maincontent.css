@@ -1,3 +1,30 @@
+
+
+/* tabs */
+
+
+#profile-tab,
+.fade.tab-pane.active.show {
+  height: 100% !important;
+}
+
+#timeline-tab {
+    display: none;
+}
+
+#network-tab {
+    display: none;
+}
+
+#profile-sharing-mng-tab {
+    display: none;
+}
+
+
+
+
+
+/* other */
 .container {
     display: flex;
     height: 75vh;

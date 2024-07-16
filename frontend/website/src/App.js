@@ -380,7 +380,7 @@ function App() {
   <Container style={{ maxWidth: '90%', margin: '0 auto', }}>
     <Tab.Container defaultActiveKey="first">
       {/* Outermost row */}
-      <Row style={{ width:'100%' }}>
+      <Row style={{ width:'100%', height:'100%' }}>
 
 
         {/* Tabs column */}
@@ -398,7 +398,7 @@ function App() {
                 <Nav.Link eventKey="third" style={{ fontSize: '18px' }}>Network</Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="fourth" style={{ fontSize: '18px' }}>Tab 4</Nav.Link>
+                <Nav.Link eventKey="fourth" style={{ fontSize: '18px' }}>Profile sharing</Nav.Link>
               </Nav.Item>
 
             </Nav>
@@ -408,21 +408,19 @@ function App() {
               <Button onClick={() => handleLogout()} style={{ width: '65px', fontSize: '14px' }}>Logout</Button> 
             </Col>
           </Row>
-          <Row>
-            <img src={logo} className="App-logo2" alt="logo" />
-          </Row>
+              
         </Col>
 
 
         {/* Page column  */}
-        <Col xs={10} md={10} lg={10}>
+        <Col xs={10} md={10} lg={10} style={{ height: '100%'}}>
           <Tab.Content style={{ height: '100%', width:'100%' }}>
             {/* All the tabs */}
 
             {/* Prfile tab */}
             <Tab.Pane eventKey="first" id="profile-tab">
               {userProfile ? (
-                <Row style={{ height: '70%', width:'100%' }}>
+                <Row style={{ height: '100%', width:'100%' }}>
 
                   {/* General user info and summary */}
                   <Col xs={5} md={5} lg={5} style={{ height: '100%', backgroundColor: 'grey', borderRadius: '10px' }}>
@@ -541,4 +539,6 @@ function App() {
   );
 }
 
+
 export default App; // Exporting the App component for use in other parts of the app
+

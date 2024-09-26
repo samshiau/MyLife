@@ -48,41 +48,34 @@ pub struct CreateAccountInfo {
 /// Arguments: pool: web::Data<DbPool>, form: web::Json<CreateAccountInfo>
 /// Returns: impl Responder
 /// Side note: deserialize is used to convert the json data to the struct data
-pub async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountInfo>) -> impl Responder { // ther reason to pass them is that we need to access the pool and the form data
-    //logic for the create account route
-    println!("Testing in create_account route");
+pub async fn create_account(pool: web::Data<DbPool>, form: web::Json<CreateAccountInfo>) -> impl Responder { 
 
-    let new_user = form.into_inner();   //accessing the form data send from client, the data is in the form of CreateAccountInfo struct, automatically converted to json
-    let hashed_password = match hash(&new_user.password, DEFAULT_COST) 
-    { // hashing the password
+    let new_user = form.into_inner();   
+    let hashed_password = match hash(&new_user.password, DEFAULT_COST) { 
         Ok(h) => h,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
-    let a_new_account: NewAccount = NewAccount 
-    {  //creating a new account instance, the struct is from model.rs. Doing so will assign the values to the struct for communication with postgresql
+    let a_new_account: NewAccount = NewAccount {  
         username: &new_user.username,
         password_hash: &hashed_password,
         account_type: &new_user.account_type
-    };  // end of a_new_account struct
+    };  
 
-    let mut conn = match pool.get() 
-    {
+    let mut conn = match pool.get() {
         Ok(conn) => conn,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
     // Calling the insert_new_account function
     let (account_id, username) = 
-    match insert_new_account(&mut conn, &a_new_account) 
-    {
+    match insert_new_account(&mut conn, &a_new_account) {
         Ok(tuple) => tuple,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 
     // Calling the insert_new_profile function using the returned account_id and username
-    match insert_new_profile(&mut conn, account_id, &username) 
-    {
+    match insert_new_profile(&mut conn, account_id, &username) {
         Ok(_) => {
             HttpResponse::Created() // Use the CREATED status code
                 .json(format!("Account and profile created with Account ID: {}", account_id)) // Include the account ID in the response
